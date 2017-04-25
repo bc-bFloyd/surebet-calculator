@@ -1,10 +1,13 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
 <!--
 `surebet-calculator`
 Surebet calculator for sports betting powered by Google Polymer
-
-@demo demo/index.html 
+@demo demo/index.html
 -->
 
 <dom-module id="surebet-calculator">
@@ -13,8 +16,72 @@ Surebet calculator for sports betting powered by Google Polymer
       :host {
         display: block;
       }
+
+      .stake {
+        width: 100px;
+      }
+
+      .odd {
+        width: 150px;
+        display: inline-block;
+        margin-right: 20px;
+      }
+
+      #messageWrapper {
+        margin-top: 20px;
+        min-height: 48px;
+      }
+
+      .surebet {
+        color: #4CAF50;
+      }
+
+      .no-surebet {
+        color: #F44336;
+      }
+
+      .add-input,
+      .odd-stake,
+      .odd-prefix {
+        color: #737373;
+      }
+
+      .add-input {
+        vertical-align: bottom;
+      }
+
+      .odd-stake {
+        font-size: 14px;
+        line-height: inherit;
+      }
+
+      .small-icon {
+        --iron-icon-width: 18px;
+      }
+
+      .powered-link a {
+        text-decoration: none;
+        color: var(--paper-blue-500);
+        font-weight: bold;
+      }
     </style>
-    <h2>Hello [[prop1]]</h2>
+
+    <paper-input class="stake" label="Einsatz" value="{{stake}}" auto-validate pattern="(\d*[.])?\d*" error-message="Beispiel 100.50">
+      <span suffix>[[currency]]</span>
+    </paper-input>
+
+    <template is="dom-repeat" items="{{numOdds}}">
+      <paper-input id="odd[[item]]" class="odd" label="Quote [[item]]" on-keyup="_calculate" auto-validate pattern="(\d*[.])?\d*" error-message="Beispiel 2.23">
+        <span prefix class="odd-prefix">@</span>
+        <span suffix id="oddSuffix[[item]]" class="odd-stake"></span>
+      </paper-input>
+    </template>
+
+    <paper-icon-button class="add-input" icon="add" on-tap="_addInput"></paper-icon-button>
+
+    <div id="messageWrapper"></div>
+
+    <div class="powered-link">powered by <a href="https://bet-chart.com">bet-chart</a>
   </template>
 
   <script>
@@ -23,12 +90,91 @@ Surebet calculator for sports betting powered by Google Polymer
       is: 'surebet-calculator',
 
       properties: {
-        prop1: {
+        currency: {
           type: String,
-          value: 'surebet-calculator',
+          value: '€',
         },
+
+        numOdds: {
+          type: Array,
+          value: function() {
+            return [1,2];
+          }
+        },
+
+        profitRate: {
+          type: Number,
+          notify: true,
+          value: -1,
+          observer: '_profitRateChanged'
+        },
+
+        stake: {
+          type: Number,
+          value: 100,
+          observer: '_calculate'
+        }
       },
 
+      _addInput: function() {
+        this.push('numOdds', this.numOdds.length+1);
+      },
+
+      _calculate: function() {
+        var oddInputs = document.getElementsByClassName('odd');
+        var messageWrapper = document.getElementById('messageWrapper');
+        if (!oddInputs.length) return;
+
+
+        this._calculateSurebet();
+      },
+
+      _calculateSurebet: function() {
+        var fieldsFilled = true;
+        var tempProfitRate = 0;
+        var tempStake = 0;
+
+        var oddInputs = document.getElementsByClassName('odd');
+        for (var i = 0; i < oddInputs.length; i++) {
+          if (!oddInputs[i].value) {
+            fieldsFilled = false;
+          }
+          tempProfitRate += 1/oddInputs[i].value;
+        }
+        for (var i = 0; i < oddInputs.length; i++) {
+          tempStake = Math.round(1/tempProfitRate*this.stake/oddInputs[i].value*100)/100;
+
+          if (fieldsFilled) {
+            document.getElementById('oddSuffix'+(i+1)).innerHTML = "<iron-icon icon=\"chevron-right\" class=\"small-icon surebet-calculator\"></iron-icon>" + tempStake + "€";
+          } else {
+            document.getElementById('oddSuffix'+(i+1)).innerHTML = "";
+          }
+        }
+
+        if (fieldsFilled) {
+          this.profitRate = tempProfitRate;
+        } else {
+          this.profitRate = -1;
+        }
+
+      },
+
+      _profitRateChanged: function(value) {
+        var profitText = Math.round((1/this.profitRate*this.stake-this.stake)*100)/100;
+        var profitRateText = Math.round(profitText/this.stake*100*100)/100;
+
+        var messageWrapper = document.getElementById('messageWrapper');
+        if (!messageWrapper) return;
+
+
+        if (value === -1 || isNaN(value)) {
+          messageWrapper.innerHTML = "";
+        } else if (value < 1) {
+          messageWrapper.innerHTML = "<span class=\"surebet surebet-calculator\">Surebet!<br> "+profitText+"€ Profit (+"+profitRateText+"%)</span>";
+        } else {
+          messageWrapper.innerHTML = "<span class=\"no-surebet surebet-calculator\">"+(-profitText)+"€ Verlust ("+profitRateText+"%)</span>";
+        }
+      }
     });
   </script>
 </dom-module>
