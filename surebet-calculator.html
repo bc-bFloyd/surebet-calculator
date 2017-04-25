@@ -1,0 +1,34 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`surebet-calculator`
+Surebet calculator for sports betting powered by Google Polymer
+
+@demo demo/index.html 
+-->
+
+<dom-module id="surebet-calculator">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]</h2>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'surebet-calculator',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 'surebet-calculator',
+        },
+      },
+
+    });
+  </script>
+</dom-module>
