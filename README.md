@@ -1,5 +1,20 @@
 # \<surebet-calculator\>
 
+<!---
+```
+<custom-element-demo>
+  <template>
+    <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="surebet-calculator.html">
+    <next-code-block></next-code-block>
+  </template>
+</custom-element-demo>
+```
+-->
+```html
+<surebet-calculator></surebet-calculator>
+```
+
 Surebet calculator for sports betting powered by Google Polymer
 
 ## Install the Polymer-CLI
